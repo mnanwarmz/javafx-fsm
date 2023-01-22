@@ -1,12 +1,15 @@
 package com.example.javafxfsm.unit;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import com.example.javafxfsm.models.DFA;
 import com.example.javafxfsm.models.NFA;
 
 public class NFATest {
@@ -60,24 +63,24 @@ public class NFATest {
 		assertEquals(expectedNextStates, nextStates);
 	}
 
-	// @Test
-	// public void testMinimizeDFA() {
-	// NFA nfa = new NFA(4, 2);
-	// nfa.addTransition(0, 0, 1);
-	// nfa.addTransition(1, 1, 2);
-	// nfa.addTransition(2, 0, 3);
-	// nfa.addFinalState(2);
-	// nfa.addFinalState(3);
+	@Test
+	public void testMinimizeDFA() {
+		NFA nfa = new NFA(4, 2);
+		nfa.addTransition(0, 0, 1);
+		nfa.addTransition(1, 1, 2);
+		nfa.addTransition(2, 0, 3);
+		nfa.addFinalState(2);
+		nfa.addFinalState(3);
 
-	// DFA dfa = nfa.minimizeDFA();
-	// Set<Integer> finalStates = dfa.getFinalStates();
-	// Set<Integer> expectedFinalStates = new HashSet<>();
-	// expectedFinalStates.add(1);
-	// assertEquals(expectedFinalStates, finalStates);
+		DFA dfa = nfa.minimizeDFA();
+		Set<Integer> finalStates = dfa.getFinalStates();
+		Set<Integer> expectedFinalStates = new HashSet<>();
+		expectedFinalStates.add(1);
+		assertEquals(expectedFinalStates, finalStates);
 
-	// dfa.addTransition(1, 0, 1);
-	// dfa.addTransition(1, 1, 1);
-	// assertTrue(dfa.accepts("01"));
-	// assertFalse(dfa.accepts("00"));
-	// }
+		dfa.addTransition(1, 0, 1);
+		dfa.addTransition(1, 1, 1);
+		assertTrue(dfa.accepts("01"));
+		assertFalse(dfa.accepts("00"));
+	}
 }
