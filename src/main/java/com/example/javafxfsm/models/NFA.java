@@ -36,32 +36,57 @@ public class NFA {
 		this.startState = startState;
 	}
 
+	public int getStartState() {
+		return startState;
+	}
+
 	public void addFinalState(int finalState) {
 		finalStates.add(finalState);
 	}
 
+	public Set<Integer> getFinalStates() {
+		return finalStates;
+	}
+
+	public int getNumStates() {
+		return numStates;
+	}
+
+	public int getNumSymbols() {
+		return numSymbols;
+	}
+
 	public void addTransition(int fromState, int symbol, int toState) {
 		transitionTable.get(fromState).get(symbol).add(toState);
+
+	}
+
+	public void setTransitionTable(Map<Integer, Map<Integer, Set<Integer>>> transitionTable) {
+		this.transitionTable = transitionTable;
+	}
+
+	public Map<Integer, Map<Integer, Set<Integer>>> getTransitionTable() {
+		return transitionTable;
 	}
 
 	public Set<Integer> epsilonClosure(Set<Integer> states) {
-		// Create a stack to hold the states to visit
-		Stack<Integer> stack = new Stack<>();
+		// Create a queue to hold the states to visit
+		Queue<Integer> queue = new LinkedList<>();
 		for (int state : states) {
-			stack.push(state);
+			queue.offer(state);
 		}
 
 		// Create a set to hold the epsilon closure
 		Set<Integer> closure = new HashSet<>(states);
 
-		// Iterate through the stack
-		while (!stack.isEmpty()) {
-			int state = stack.pop();
+		// Iterate through the queue
+		while (!queue.isEmpty()) {
+			int state = queue.poll();
 
 			// Add all the states reachable from the current state with epsilon transitions
 			for (int nextState : transitionTable.get(state).get(0)) {
 				if (closure.add(nextState)) {
-					stack.push(nextState);
+					queue.offer(nextState);
 				}
 			}
 		}
@@ -143,6 +168,10 @@ public class NFA {
 		P.add(nonFinalStates);
 		// Initialize the set W
 		Set<Set<Integer>> W = new HashSet<>(P);
+		Map<Set<Integer>, Integer> groupIds = new HashMap<>();
+		for (int i = 0; i < P.size(); i++) {
+			groupIds.put(P.get(i), i);
+		}
 		// Create the transition table for the minimized DFA
 		Map<Integer, Map<Integer, Set<Integer>>> transitionTable = new HashMap<>();
 		// While W is not empty
@@ -160,7 +189,8 @@ public class NFA {
 					X.addAll(this.transitionTable.get(q).get(a));
 				}
 				// For each set Y in P
-				for (Set<Integer> Y : P) {
+				List<Set<Integer>> P_copy = new ArrayList<>(P);
+				for (Set<Integer> Y : P_copy) {
 					// If X is a proper subset of Y
 					if (Y.containsAll(X) && !Y.equals(X)) {
 						// Create a new set Z = Y - X
@@ -185,15 +215,24 @@ public class NFA {
 			}
 		}
 		// Set the start state and final states for the minimized DFA
-		for (Set<Integer> group : P) {
+		for (int i = 0; i < P.size(); i++) {
+			Set<Integer> group = P.get(i);
 			if (group.contains(this.startState)) {
-				minimizedDFA.startState = group;
+				minimizedDFA.setStartState(groupIds.get(group));
 			}
-			if (!Collections.disjoint(group, this.finalStates)) {
-				minimizedDFA.finalStates.add(group);
+			if (this.finalStates.stream().anyMatch(group::contains)) {
+				minimizedDFA.addFinalState(groupIds.get(group));
 			}
 		}
-		minimizedDFA.transitionTable = transitionTable;
+		// Set the transition table for the minimized DFA
+		for (int i = 0; i < P.size(); i++) {
+			for (int a = 0; a < this.numSymbols; a++) {
+				Set<Integer> nextStates = transitionTable.get(i).get(a);
+				if (nextStates != null) {
+					minimizedDFA.addTransition(i, a, groupIds.get(nextStates));
+				}
+			}
+		}
 		return minimizedDFA;
 	}
 

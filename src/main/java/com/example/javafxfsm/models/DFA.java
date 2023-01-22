@@ -5,7 +5,9 @@ import java.util.*;
 public class DFA {
 	private int numStates;
 	private int numSymbols;
+	private int startState;
 	private Map<Integer, Map<Integer, Integer>> transitions;
+	private Map<Integer, Map<Integer, Set<Integer>>> transitionTable;
 	private Set<Integer> finalStates;
 
 	public DFA(int numStates, int numSymbols) {
@@ -26,8 +28,24 @@ public class DFA {
 		finalStates.add(state);
 	}
 
+	public void addFinalStateGroup(Set<Integer> states) {
+		finalStates.addAll(states);
+	}
+
 	public Set<Integer> getFinalStates() {
 		return finalStates;
+	}
+
+	public void setStartState(int startState) {
+		this.startState = startState;
+	}
+
+	public void setTransitionTable(Map<Integer, Map<Integer, Set<Integer>>> transitionTable) {
+		this.transitionTable = transitionTable;
+	}
+
+	public int getStartState() {
+		return startState;
 	}
 
 	public boolean accepts(String input) {

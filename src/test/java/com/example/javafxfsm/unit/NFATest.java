@@ -65,6 +65,10 @@ public class NFATest {
 
 	@Test
 	public void testMinimizeDFA() {
+		// Increase timeout to 10 seconds
+		// JUnit 5 does not support this yet
+		//
+
 		NFA nfa = new NFA(4, 2);
 		nfa.addTransition(0, 0, 1);
 		nfa.addTransition(1, 1, 2);
