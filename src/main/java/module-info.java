@@ -8,5 +8,8 @@ module com.example.javafxfsm {
     requires org.kordamp.bootstrapfx.core;
 
     opens com.example.javafxfsm to javafx.fxml;
+    opens com.example.javafxfsm.controllers to javafx.fxml;
+    opens com.example.javafxfsm.models to javafx.fxml;
     exports com.example.javafxfsm;
 }
+

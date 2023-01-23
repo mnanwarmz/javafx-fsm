@@ -293,6 +293,7 @@ public class NFA {
 		return minimizedDFA;
 	}
 
+//	From Epsilon-NFA to NFA
 	public NFA convertToNFA() {
 		// Initialize the NFA with the same number of states and symbols
 		NFA nfa = new NFA(numStates, numSymbols);
