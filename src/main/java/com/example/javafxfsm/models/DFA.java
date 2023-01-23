@@ -9,6 +9,8 @@ public class DFA {
 	private Map<Integer, Map<Integer, Integer>> transitions;
 	private Map<Integer, Map<Integer, Set<Integer>>> transitionTable;
 	private Set<Integer> finalStates;
+	private Map<Set<Integer>, Integer> stateMap = new HashMap<>();
+	private int stateCounter = 0;
 
 	public DFA(int numStates, int numSymbols) {
 		this.numStates = numStates;
@@ -20,8 +22,34 @@ public class DFA {
 		finalStates = new HashSet<>();
 	}
 
+	public DFA() {
+		transitionTable = new HashMap<>();
+	}
+
+	public int getNumStates() {
+		return transitionTable.size();
+	}
+
 	public void addTransition(int fromState, int symbol, int toState) {
 		transitions.get(fromState).put(symbol, toState);
+	}
+
+	public Map<Integer, Map<Integer, Integer>> getTransitions() {
+		return transitions;
+	}
+
+	public void addTransition(Set<Integer> fromState, int symbol, Set<Integer> toState) {
+		if (!stateMap.containsKey(fromState)) {
+			stateMap.put(fromState, stateCounter);
+			transitionTable.put(stateCounter, new HashMap<>());
+			stateCounter++;
+		}
+		if (!stateMap.containsKey(toState)) {
+			stateMap.put(toState, stateCounter);
+			transitionTable.put(stateCounter, new HashMap<>());
+			stateCounter++;
+		}
+		transitionTable.get(stateMap.get(fromState)).put(symbol, toState);
 	}
 
 	public void addFinalState(int state) {

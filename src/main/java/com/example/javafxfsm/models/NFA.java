@@ -34,6 +34,14 @@ public class NFA {
 		}
 	}
 
+	private Set<Integer> move(Set<Integer> states, int symbol, NFA nfa) {
+		Set<Integer> result = new HashSet<>();
+		for (int state : states) {
+			result.addAll(nfa.getTransitionTable().get(state).get(symbol));
+		}
+		return result;
+	}
+
 	public void setStartState(int startState) {
 		this.startState = startState;
 	}
@@ -327,6 +335,44 @@ public class NFA {
 		}
 		nfa.setTransitionTable(transitionTable);
 		return nfa;
+	}
+
+	public DFA convertToDFA(NFA nfa) {
+		// Initialize an empty set called Dstates, which will hold the states of the
+		// DFA.
+		Set<Set<Integer>> Dstates = new HashSet<>();
+		// Initialize a queue called worklist, which will be used to keep track of the
+		// states that still need to be processed.
+		Queue<Set<Integer>> worklist = new LinkedList<>();
+		// Create a new state in the DFA called the start state,
+		// which contains the epsilon-closure of the initial state of the NFA,
+		// and add it to Dstates and worklist.
+		Set<Integer> start = nfa.epsilonClosure(nfa.getStartState());
+		Dstates.add(start);
+		worklist.add(start);
+		// Initialize the DFA
+		DFA dfa = new DFA();
+		// While worklist is not empty:
+		while (!worklist.isEmpty()) {
+			// Dequeue a state S from worklist.
+			Set<Integer> S = worklist.poll();
+			// For each input symbol a:
+			for (int a = 0; a < nfa.getNumSymbols(); a++) {
+				// Compute the set of NFA states that can be reached from S by following the
+				// input symbol a.
+				Set<Integer> T = nfa.epsilonClosure(move(S, a, nfa));
+				// If the epsilon-closure is not in Dstates, add it as a new state in the DFA
+				// and add it to the worklist.
+				if (!Dstates.contains(T)) {
+					Dstates.add(T);
+					worklist.add(T);
+				}
+				// Add a transition from S to the epsilon-closure state in the DFA for input
+				// symbol a.
+				dfa.addTransition(S, a, T);
+			}
+		}
+		return dfa;
 	}
 
 }
