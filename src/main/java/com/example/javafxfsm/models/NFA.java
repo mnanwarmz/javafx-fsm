@@ -7,6 +7,8 @@ public class NFA {
 	private int numSymbols;
 	private int startState;
 	private Set<Integer> finalStates;
+	private Set<Integer> startStates = new HashSet<>();
+
 	private Map<Integer, Map<Integer, Set<Integer>>> transitionTable;
 	private Map<Integer, Map<Integer, Set<Integer>>> transitions;
 
@@ -93,12 +95,59 @@ public class NFA {
 		return closure;
 	}
 
+	public Set<Integer> epsilonClosure(int state) {
+		// Create a queue to hold the states to visit
+		Queue<Integer> queue = new LinkedList<>();
+		queue.offer(state);
+
+		// Create a set to hold the epsilon closure
+		Set<Integer> closure = new HashSet<>();
+		closure.add(state);
+
+		// Iterate through the queue
+		while (!queue.isEmpty()) {
+			int currentState = queue.poll();
+
+			// Add all the states reachable from the current state with epsilon transitions
+			for (int nextState : transitionTable.get(currentState).get(0)) {
+				if (closure.add(nextState)) {
+					queue.offer(nextState);
+				}
+			}
+		}
+
+		return closure;
+	}
+
 	public Set<Integer> getNextStates(Set<Integer> states, int symbol) {
 		Set<Integer> nextStates = new HashSet<>();
 		for (int state : states) {
 			nextStates.addAll(transitionTable.get(state).get(symbol));
 		}
 		return nextStates;
+	}
+
+	public void addFinalStateGroup(Set<Integer> states) {
+		for (int state : states) {
+			finalStates.add(state);
+		}
+	}
+
+	public void addStartStateGroup(Set<Integer> states) {
+		// for (int state : states) {
+		// startState = state;
+		// }
+		for (int state : states) {
+			startStates.add(state);
+		}
+	}
+
+	public Set<Integer> getStartStateGroup() {
+		return startStates;
+	}
+
+	public Set<Integer> getFinalStateGroup() {
+		return finalStates;
 	}
 
 	public NFA convertToNFA(RegularGrammar grammar) {
@@ -234,6 +283,50 @@ public class NFA {
 			}
 		}
 		return minimizedDFA;
+	}
+
+	public NFA convertToNFA() {
+		// Initialize the NFA with the same number of states and symbols
+		NFA nfa = new NFA(numStates, numSymbols);
+
+		// Set the start state and final states of the new NFA to be the epsilon-closure
+		// of the start state and final states of the epsilon-NFA
+		Set<Integer> startClosure = epsilonClosure(startState);
+		nfa.addStartStateGroup(startClosure);
+		for (int finalState : finalStates) {
+			nfa.addFinalStateGroup(epsilonClosure(finalState));
+		}
+
+		// Create the transition table for the NFA
+		Map<Integer, Map<Integer, Set<Integer>>> transitionTable = new HashMap<>();
+		for (int currentState : epsilonClosure(startState)) {
+			for (int symbol = 0; symbol < numSymbols; symbol++) {
+				// Compute the set of states that can be reached from the epsilon-closure of the
+				// current state using the symbol
+				Set<Integer> nextStates = epsilonClosure(getNextStates(epsilonClosure(currentState), symbol));
+				// If the transition table already contains the current state
+				if (transitionTable.containsKey(currentState)) {
+					// If the transition table for the current state already contains the symbol
+					if (transitionTable.get(currentState).containsKey(symbol)) {
+						// Add the next state to the set of states reachable from the current state with
+						// the symbol
+						transitionTable.get(currentState).get(symbol).addAll(nextStates);
+					} else {
+						// Create a new set for the next state and add it to the transition table for
+						// the current state and symbol
+						transitionTable.get(currentState).put(symbol, nextStates);
+					}
+				} else {
+					// Create a new map for the symbol and add it to the transition table for the
+					// current state
+					Map<Integer, Set<Integer>> symbolMap = new HashMap<>();
+					symbolMap.put(symbol, nextStates);
+					transitionTable.put(currentState, symbolMap);
+				}
+			}
+		}
+		nfa.setTransitionTable(transitionTable);
+		return nfa;
 	}
 
 }
